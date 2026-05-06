@@ -298,4 +298,3 @@ This project is open source under the **MIT License**.
 🐛 **Issues & PRs** welcome — let's build better ticketing systems together.
 
 </div>
-```
