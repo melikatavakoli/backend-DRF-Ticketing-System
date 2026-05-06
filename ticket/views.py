@@ -14,71 +14,30 @@ from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import permissions
-# from ticket.ticket_export import export_ticket_data
+
 User = get_user_model()
 
-# # ========================================================================================
-# # ================== Ticket Export APIView
-# # ========================================================================================-
-# class TicketExportAPIView(APIView):
-#     permission_classes = [IsAuthenticated]
 
-#     def post(self, request):
-#         ticket_id = request.query_params.get("ticket_id")
-
-#         serializer = TicketExportInputSerializer(data=request.data)
-#         serializer.is_valid(raise_exception=True)
-
-#         fields = serializer.validated_data.get("fields")
-
-#         data = export_ticket_data(
-#             ticket_id=ticket_id,
-#             selected_fields=fields
-#         )
-
-#         return Response(
-#             {
-#                 "ticket_id": ticket_id,
-#                 "count": len(data),
-#                 "data": data,
-#             },
-#             status=status.HTTP_200_OK
-#         )
-
-# # ========================================================================================
-# # ================== IsUserOrAdminStaff
-# # ========================================================================================-
 class IsUserOrAdminStaff(permissions.BasePermission):
-    """
-    - admin (base_role=admin) همیشه مجاز
-    - user فقط اگر Staff معتبر داشته باشد
-    """
-
     def has_permission(self, request, view):
         if not request.user or not request.user.is_authenticated:
             return False
-
         if request.user.is_superuser:
             return True
-
         if str(request.user.base_role).lower() == 'admin':
             return True
         if str(request.user.base_role).lower() == 'user':
             staff = request.user.user_staff.first()
             if not staff:
                 return False
-
             return (
                 staff.is_present and
                 staff.role and
                 staff.role.key in ['user', 'admin']
             )
-
         return False
     
-# # ========================================================================================
-# # ================== User Ticket Detail APIView
-# # ========================================================================================-
+
 class UserTicketDetailAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -86,11 +45,9 @@ class UserTicketDetailAPIView(APIView):
         ticket_id = request.GET.get('ticket_id')
         if not ticket_id:
             return Response({'detail': 'ticket_id required'}, status=400)
-
         ticket = Ticket.objects.filter(id=ticket_id, user=request.user).first()
         if not ticket:
             return Response({'detail': 'تیکت یافت نشد'}, status=404)
-
         data = {
             'title': ticket.title,
             'number': ticket.number,
@@ -101,9 +58,7 @@ class UserTicketDetailAPIView(APIView):
         }
         return Response(data)
     
-# # ========================================================================================
-# # ================== Ticket ViewSet
-# # ========================================================================================-
+
 class TicketViewSet(ModelViewSet):
     queryset = Ticket.objects.all()
 
@@ -119,9 +74,7 @@ class TicketViewSet(ModelViewSet):
             return UserCreateTicketSerializer
         return UserTicketListSerializer
 
-# # ========================================================================================
-# # ================== User Reply Ticket APIView
-# # ========================================================================================-
+
 class UserReplyTicketAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -129,7 +82,6 @@ class UserReplyTicketAPIView(APIView):
         ticket = Ticket.objects.filter(id=ticket_id, user=request.user).first()
         if not ticket:
             return Response({'detail': 'تیکت یافت نشد'}, status=404)
-
         serializer = UserReplyTicketSerializer(
             data=request.data,
             context={'request': request, 'ticket': ticket}
